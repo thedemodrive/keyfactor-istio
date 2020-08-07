@@ -38,13 +38,13 @@ provisioningAppKey: ""
 # CA Template for provisioning TLS server and client certificates
 provisioningTemplate: "Istio"
 ```
-2. Create kubernetes secrets contains Keyfactor's credentials
+2. Create kubernetes secrets `keyfactor-secret` contains Keyfactor's credentials
 
 ```bash
 kubectl create namespace keyfactor
 kubectl create secret generic keyfactor-secret -n keyfactor --from-file=./credentials.yaml
 ```
-3. Update helm's values to install Keyfactor-Proxy
+3. Update helm's values `proxy-config.yaml` to install Keyfactor-Proxy
 ```Yaml
 replicaCount: 1
 
