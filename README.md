@@ -210,7 +210,7 @@ kubectl exec $(kubectl get pod -l app=sleep -n outsidemesh -o jsonpath={.items..
 
 > Note: every workload **deployed without sidecar** cannot access Book Info services (HTTP_STATUS = 000)
 
-# Roadmap:
+# Tasks Checklist:
 1. CSR Forwarder (Istio modification):
   - [x] Integrate Keyfactor with Istiod
   - [x] Support mTLS secure connection between IstioD and Keyfactor Proxy
