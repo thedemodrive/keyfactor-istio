@@ -1,5 +1,7 @@
 # Setup guidelines
 
+![Network Architecture](https://github.com/thedemodrive/keyfactor-istio/raw/master/Screen%20Shot%202020-08-07%20at%202.36.06%20PM.png)
+
 ## Prerequisite
 
 - These steps require you to have a cluster running a compatible version of Kubernetes. You can use any supported platform, for example [Minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/) or others specified by the [platform-specific setup instructions](https://istio.io/docs/setup/platform-setup/).
