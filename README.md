@@ -83,7 +83,7 @@ keyfactor:
 4. Install Keyfactor-Proxy via Helm 3
 
 ```bash
-helm install key -n keyfactor ./release/keyfactor-k8s-0.1.0.tgz 
+helm install key -n keyfactor --values proxy-config.yaml ./release/keyfactor-k8s-0.1.0.tgz 
 ```
 
 ## Install Istio
