@@ -89,6 +89,7 @@ helm install key -n keyfactor ./release/keyfactor-k8s-0.1.0.tgz
 1. Get TLS Client Cert from Keyfactor-Proxy and prepare for Istio
 
 ```
+# Get name of first pod
 export POD_NAME=$(kubectl get pods --namespace keyfactor -l "app.kubernetes.io/name=keyfactor-k8s" -o jsonpath="{.items[0].metadata.name}")
 
 kubectl cp keyfactor/$POD_NAME:certs/client.crt custom-ca.crt
