@@ -52,7 +52,7 @@ replicaCount: 1
 
 image:
   repository: thedemodrive/keyfactor-proxy
-  ## REQUIRE
+  ## REQUIRE (TODO: set to default value)
   pullPolicy: "Always" 
   tag: "latest"
 
