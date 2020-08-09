@@ -80,7 +80,7 @@ keyfactor:
 helm install key -n keyfactor --values proxy-config.yaml ./release/keyfactor-k8s-0.1.0.tgz 
 ```
 `NOTE: after install keyfactor-proxy by helm, **the address of Keyfactor-Proxy** will be print in console. It's used for CUSTOM_CA_ADDR in istio-config.yaml`
-
+![Helm install successful console](https://github.com/thedemodrive/keyfactor-istio/raw/master/helm-console.png)
 ## Install Istio
 
 1. Get TLS Client Cert from Keyfactor-Proxy and prepare for Istio
