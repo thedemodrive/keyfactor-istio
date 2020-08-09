@@ -211,7 +211,7 @@ kubectl exec $(kubectl get pod -l app=sleep -n outsidemesh -o jsonpath={.items..
   - [x] Support mTLS secure connection between IstioD and Keyfactor Proxy
   - [x] Support configure Keyfactor Proxy address
   - [x] Support configure TLS Certs : client cert, client private key, CA cert.
-  - [ ] Hardness Unit Test
+  - [x] Hardness Unit Test
   - [ ] Create and complete the pull request based on Istio's feedbacks
 2. Code change to include Pod's Metadata (Istio modification): 2 fields: PodName and PodIP
   - [x] Implement
