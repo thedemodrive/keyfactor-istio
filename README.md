@@ -6,7 +6,7 @@
 
 - These steps require you to have a cluster running a compatible version of Kubernetes. You can use any supported platform, for example [Minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/) or others specified by the [platform-specific setup instructions](https://istio.io/docs/setup/platform-setup/).
 - Require Helm 3 to install Keyfactor-Proxy. [Helm 3 Instruction](https://helm.sh/docs/intro/install/)
-- Download & extract release bundle: [**Click here to download release bundle v2.alpha.1 **](https://github.com/thedemodrive/keyfactor-istio/releases/download/v2.alpha.1/v2alpha1.zip).
+- Download & extract release bundle: [**Click here to download release bundle v2.alpha.1 **](https://github.com/thedemodrive/keyfactor-istio/releases/download/v2.alpha.2/v2alpha2.zip).
 - cd `./v2alpha1`
 - Add the `istioctl` client at `./release/istioctl-*` to your path (Linux or macOS or Windows):
   - OSX: `istioctl-osx`
@@ -48,45 +48,38 @@ kubectl create secret generic keyfactor-secret -n keyfactor --from-file=./creden
 ```
 3. Update helm's values `proxy-config.yaml` to install Keyfactor-Proxy
 ```Yaml
+# Number of replication for Keyfactor-Proxy
 replicaCount: 1
-
-image:
-  repository: thedemodrive/keyfactor-proxy
-  ## REQUIRE (TODO: set to default value)
-  pullPolicy: "Always" 
-  tag: "latest"
-
 keyfactor:
   # Name of kubernetes secret contains credentials.yaml
   secretName: "keyfactor-secret"
-  # Server port
-  port: 8932
+  # Config name mapping Keyfactor's Custom Metadata, turn off field by remove item
   metadataMapping:
     # Name of cluster
     - name: ClusterID
-      fieldName: Cluster
+      fieldName: Cluster # Name of Keyfactor's metadata field
     # Name of service
     - name: ServiceName
-      fieldName: Service
+      fieldName: Service # Name of Keyfactor's metadata field
     # Name of Pod
     - name: PodName
-      fieldName: PodName
+      fieldName: PodName # Name of Keyfactor's metadata field
     # Pod IP
     - name: PodIP
-      fieldName: PodIP
+      fieldName: PodIP # Name of Keyfactor's metadata field
     # Eg: cluster.local
     - name: TrustDomain
-      fieldName: TrustDomain
+      fieldName: TrustDomain # Name of Keyfactor's metadata field
     # Namespace of pod
     - name: PodNamespace
-      fieldName: PodNamespace
-
+      fieldName: PodNamespace # Name of Keyfactor's metadata field
 ```
 4. Install Keyfactor-Proxy via Helm 3
 
 ```bash
 helm install key -n keyfactor --values proxy-config.yaml ./release/keyfactor-k8s-0.1.0.tgz 
 ```
+`NOTE: after install keyfactor-proxy by helm, **the address of Keyfactor-Proxy** will be print in console. It's used for CUSTOM_CA_ADDR in istio-config.yaml`
 
 ## Install Istio
 
@@ -104,7 +97,7 @@ kubectl create namespace istio-system
 # Configure certificates for Istio
 kubectl create secret generic cacerts -n istio-system --from-file ./root-cert.pem --from-file ./custom-ca.crt --from-file ./custom-ca.key
 ```
-2. Update `istio-config.yaml`
+2. Update `istio-config.yaml`, set ENV `CUSTOM_CA_ADDR` of Pilot Component
 ```Yaml
 apiVersion: install.istio.io/v1alpha1
 kind: IstioOperator
@@ -112,7 +105,7 @@ metadata:
   namespace: istio-system
 spec:
   hub: thedemodrive
-  tag: v2.alpha.1
+  tag: v2.alpha.2
   installPackagePath: "charts"
   profile: "demo"
   components:
@@ -121,8 +114,8 @@ spec:
       k8s:
         env:
           - name: CUSTOM_CA_ADDR
-            # Address of Keyfactor-Proxy, It's printed on console after install Keyfactor-Proxy successful
-            value: "key-keyfactor-k8s.keyfactor.svc.cluster.local:8932"
+            # The address of Keyfactor-Proxy, It's printed on console after installing Keyfactor-Proxy
+            value: "k-keyfactor-k8s.keyfactor.svc.cluster.local:8932"
 ```
 3. Install Istio with `istio-config.yaml`
 
