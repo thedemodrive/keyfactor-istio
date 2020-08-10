@@ -7,7 +7,7 @@
 - These steps require you to have a cluster running a compatible version of Kubernetes. You can use any supported platform, for example [Minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/) or others specified by the [platform-specific setup instructions](https://istio.io/docs/setup/platform-setup/).
 - Require Helm 3 to install Keyfactor-Proxy. [Helm 3 Instruction](https://helm.sh/docs/intro/install/)
 - Download & extract release bundle: [**Click here to download release bundle v2.alpha.2 **](https://github.com/thedemodrive/keyfactor-istio/releases/download/v2.alpha.2/v2alpha2.zip).
-- cd `./v2alpha1`
+- cd `./v2alpha2`
 - Add the `istioctl` client at `./release/istioctl-*` to your path (Linux or macOS or Windows):
   - OSX: `istioctl-osx`
   - Linux: `istioctl-linux-amd64`
@@ -212,7 +212,8 @@ kubectl exec $(kubectl get pod -l app=sleep -n outsidemesh -o jsonpath={.items..
   - [x] Support configure Keyfactor Proxy address
   - [x] Support configure TLS Certs : client cert, client private key, CA cert.
   - [x] Hardness Unit Test
-  - [ ] Create and complete the pull request based on Istio's feedbacks
+  - [x] Create and complete the pull request based on Istio's feedbacks
+  - [ ] Get approval
 2. Code change to include Pod's Metadata (Istio modification): 2 fields: PodName and PodIP
   - [x] Implement
   - [x] Create pull request for supporting pod metadata into Certificate Signing API (github.com/istio/api)
