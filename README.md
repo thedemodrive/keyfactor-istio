@@ -59,7 +59,7 @@ keyfactor:
     - name: ClusterID
       fieldName: Cluster # Name of Keyfactor's metadata field
     # Name of service
-    - name: ServiceName
+    - name: Service
       fieldName: Service # Name of Keyfactor's metadata field
     # Name of Pod
     - name: PodName
