@@ -81,7 +81,12 @@ helm install keyfactor-k8s -n keyfactor ./release/keyfactor-k8s-0.0.1-rc.tgz -f 
 
 ## Test Keyfactor Integrate With Kubernetes - Keyfactor Certificate Signer
 1. Create CSR (Certificate Signing Request)
+The following scripts show how to generate PKI private key and CSR
 
+```bash
+openssl genrsa -out keyfactor.key 2048
+openssl req -new -key keyfactor.key -out keyfactor.csr
+```
 2. Create `csr-example.yaml`
 
 ```Yaml
