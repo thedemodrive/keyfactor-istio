@@ -5,7 +5,7 @@
 ## Prerequisite
 
 - These steps require you to have a cluster running a compatible version of Kubernetes. You can use any supported platform, for example [Minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/) or others specified by the [platform-specific setup instructions](https://istio.io/docs/setup/platform-setup/).
-- Require Kubernetes Version >= 1.18
+- Require Kubernetes Version **1.18.x**  (eg: minikube start --memory=10000 --cpus=4 --kubernetes-version=1.18.6)
 - Require Helm 3 to install Keyfactor-Proxy. [Helm 3 Instruction](https://helm.sh/docs/intro/install/)
 - Download & extract release bundle: [**Click here to download release bundle keyfactor-v2-beta **](https://github.com/thedemodrive/keyfactor-istio/releases/download/keyfactor-v2-beta/keyfactor-v2-beta.zip).
 - Add the `istioctl` client at `./release/istioctl-*` to your path (Linux or macOS or Windows):
