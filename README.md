@@ -5,9 +5,9 @@
 ## Prerequisite
 
 - These steps require you to have a cluster running a compatible version of Kubernetes. You can use any supported platform, for example [Minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/) or others specified by the [platform-specific setup instructions](https://istio.io/docs/setup/platform-setup/).
+- Require Kubernetes Version >= 1.18
 - Require Helm 3 to install Keyfactor-Proxy. [Helm 3 Instruction](https://helm.sh/docs/intro/install/)
-- Download & extract release bundle: [**Click here to download release bundle v2.alpha.2 **](https://github.com/thedemodrive/keyfactor-istio/releases/download/v2.alpha.2/v2alpha2.zip).
-- cd `./v2alpha2`
+- Download & extract release bundle: [**Click here to download release bundle keyfactor-v2-beta **](https://github.com/thedemodrive/keyfactor-istio/releases/download/keyfactor-v2-beta/keyfactor-v2-beta.zip).
 - Add the `istioctl` client at `./release/istioctl-*` to your path (Linux or macOS or Windows):
   - OSX: `istioctl-osx`
   - Linux: `istioctl-linux-amd64`
@@ -16,88 +16,71 @@
 ## Install Keyfactor-Proxy
 1. Update file `credentials.yaml`
 ```YAML
-# Keyfactor Endpoint
+# Endpoint of Keyfactor Platform
 endPoint: ""
 
-# Name of certificate authorization
+# Name of certificate authorization for enroll Istio's Workload Certificate
 caName: ""
 
-# Using for authentication header
+# Using for authentication header: "Basic ...."
 authToken: ""
 
 # API path for enroll new certificate from Keyfactor
-enrollPath: "KeyfactorAPI/Enrollment/CSR"
+enrollPath: ""
 
-# Certificate Template for enroll the new one: Default is Istio
+# Certificate Template for enroll Istio's Workload Certificate: Default is Istio
 caTemplate: "Istio"
 
-# ApiKey from Api Setting, enroll certificate for Istio
+# ApiKey from Api Setting, for enroll Istio's Workload Certificate
 appKey: ""
 
-# ApiKey for provisioning TLS server and client certificates
+# ApiKey for auto provisioning TLS server / client certificates
 provisioningAppKey: ""
 
-# CA Template for provisioning TLS server and client certificates
+# CA Template for auto provisioning TLS server / client certificates
 provisioningTemplate: "Istio"
 ```
-2. Create kubernetes secrets `keyfactor-secret` contains Keyfactor's credentials
+2. Create kubernetes secrets `keyfactor-credentials` contains Keyfactor's credentials
 
 ```bash
 kubectl create namespace keyfactor
-kubectl create secret generic keyfactor-secret -n keyfactor --from-file=./credentials.yaml
+kubectl create secret generic keyfactor-credentials -n keyfactor --from-file credentials.yaml
 ```
-3. Update helm's values `proxy-config.yaml` to install Keyfactor-Proxy
+3. Update Keyfactor Proxy helm's values `helm-values.yaml` to install Keyfactor-K8S-Proxy
 ```Yaml
 # Number of replication for Keyfactor-Proxy
 replicaCount: 1
 keyfactor:
   # Name of kubernetes secret contains credentials.yaml
-  secretName: "keyfactor-secret"
-  # Config name mapping Keyfactor's Custom Metadata, turn off field by remove item
+  secretName: keyfactor-credentials
+  # Config name mapping Keyfactor's Custom Metadata, turn off field by remove field
+  # Pattern: [Istio Metadata Field] : [Keyfactor Metadata Name]
+  # Supported Istio's Metadata: ClusterID, ServiceName, PodName, PodIP, PodNamespace, TrustDomain
   metadataMapping:
-    # Name of cluster
-    - name: ClusterID
-      fieldName: Cluster # Name of Keyfactor's metadata field
-    # Name of service
-    - name: Service
-      fieldName: Service # Name of Keyfactor's metadata field
-    # Name of Pod
-    - name: PodName
-      fieldName: PodName # Name of Keyfactor's metadata field
-    # Pod IP
-    - name: PodIP
-      fieldName: PodIP # Name of Keyfactor's metadata field
-    # Eg: cluster.local
-    - name: TrustDomain
-      fieldName: TrustDomain # Name of Keyfactor's metadata field
-    # Namespace of pod
-    - name: PodNamespace
-      fieldName: PodNamespace # Name of Keyfactor's metadata field
+    ClusterID: Cluster
+    ServiceName: Service
+    PodName: PodName
+    PodIP: PodIP
+    PodNamespace: PodNamespace
+    TrustDomain: TrustDomain # Value Example: cluster.local
+  # Enable auto provisioning TLS's client certificates
+  # Using for secure connection between Istio <> Keyfactor K8S Agent
+  enableAutoProvisioningIstioCert: true
+  istioNamespace: istio-system # Namespace to install Istio
+  istioSecretName: custom-ca-tls # Name of secret contains TLS Client Certs
 ```
-4. Install Keyfactor-Proxy via Helm 3
+> Note: Keyfactor K8S Proxy will auto provisioning TLS Client Certificates for Istio Config
+4. Install Keyfactor K8S Proxy via Helm 3
 
 ```bash
-helm install k -n keyfactor --values proxy-config.yaml ./release/keyfactor-k8s-0.1.0.tgz 
+helm install keyfactor-k8s -n keyfactor ./release/keyfactor-k8s-0.0.1-rc.tgz -f helm-values.yaml --wait
 ```
-> Note: After keyfactor-proxy is installed by helm, **the address of Keyfactor-Proxy** will be print in console. It's used for CUSTOM_CA_ADDR ENV in istio-config.yaml
-![Helm install successful console](https://github.com/thedemodrive/keyfactor-istio/raw/master/helm-console.png)
+> Note: After keyfactor-k8s-proxy is installed by helm, Istio's configuration yaml file will be printed.
+
+![Helm install successful console](https://github.com/thedemodrive/keyfactor-istio/raw/master/Helm%20Result.png)
 ## Install Istio
 
-1. Get TLS Client Cert from Keyfactor-Proxy and prepare for Istio
-
-```
-# Get name of first pod
-export POD_NAME=$(kubectl get pods --namespace keyfactor -l "app.kubernetes.io/name=keyfactor-k8s" -o jsonpath="{.items[0].metadata.name}")
-
-kubectl cp keyfactor/$POD_NAME:certs/client.crt custom-ca.crt
-kubectl cp keyfactor/$POD_NAME:certs/client.key custom-ca.key
-kubectl cp keyfactor/$POD_NAME:certs/root-cert.pem root-cert.pem
-
-kubectl create namespace istio-system
-# Configure certificates for Istio
-kubectl create secret generic cacerts -n istio-system --from-file ./root-cert.pem --from-file ./custom-ca.crt --from-file ./custom-ca.key
-```
-2. Update `istio-config.yaml`, set ENV `CUSTOM_CA_ADDR` of Pilot Component
+1. Update `istio-config.yaml` by using printed values on above step.
 ```Yaml
 apiVersion: install.istio.io/v1alpha1
 kind: IstioOperator
@@ -105,17 +88,38 @@ metadata:
   namespace: istio-system
 spec:
   hub: thedemodrive
-  tag: v2.alpha.2
+  tag: keyfactor-v2-beta2
   installPackagePath: "charts"
   profile: "demo"
-  components:
+  values:
     pilot:
-      enabled: true
-      k8s:
-        env:
-          - name: CUSTOM_CA_ADDR
-            # The address of Keyfactor-Proxy, It's printed on console after installing Keyfactor-Proxy
-            value: "k-keyfactor-k8s.keyfactor.svc.cluster.local:8932"
+      secretVolumes:
+        - name: <SECRET_NAME>
+          secretName: <SECRET_NAME>
+          mountPath: /etc/istio/<SECRET_NAME>
+  meshConfig:
+    ca:
+      # Use istiod_side to specify CA Server integrate to Istiod side or Agent side
+      istiodSide: true
+      # Address of the CA server implementing the Istio CA gRPC API.
+      # Can be IP address or a fully qualified DNS name with port
+      # Eg: custom-ca.default.svc.cluster.local:8932, 192.168.23.2:9000
+      # If specified, Istio will authorize and forward the CSRs from the workloads to the specified external CA
+      # using the Istio CA gRPC API.
+      address: <KEYFACTOR_K8S_ADDRESS>:<PORT>
+      # timeout for forward CSR requests from Istiod to External CA
+      # Default: 30s
+      requestTimeout: 30s
+      # Default TLS mode is MUTUAL, It's require to specific TLS client certificate files.
+      # According sistiodSide = true, TLS files could be mounted from Kubernetes Secret
+      # configurable via values.pilot.secretVolumes
+      tlsSettings:
+        mode: MUTUAL # Supported values: DISABLE, MUTUAL
+        clientCertificate: "/etc/istio/<SECRET_NAME>/client-cert.pem"
+        privateKey: "/etc/istio/<SECRET_NAME>/client-key.pem"
+        caCertificates: "/etc/istio/<SECRET_NAME>/cacert.pem"
+        sni: <KEYFACTOR_K8S_ADDRESS>
+        subjectAltNames: []
 ```
 3. Install Istio with `istio-config.yaml`
 
