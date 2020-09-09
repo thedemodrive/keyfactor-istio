@@ -13,7 +13,7 @@
   - Linux: `istioctl-linux-amd64`
   - Windows: `istioctl-win.exe`
 
-## Install Keyfactor-Proxy
+## Install Keyfactor-K8S-Proxy
 1. Update file `credentials.yaml`
 ```YAML
 # Endpoint of Keyfactor Platform
